@@ -1,4 +1,5 @@
 const path = require('path'); 
+const execSQL = require('./until/helper');
 function Route(app) {
 
     app.get('/', (req, res) => {
@@ -6,16 +7,24 @@ function Route(app) {
         res.sendFile(path.join(__dirname, '../components', 'index.html'));
     })
     app.post('/upload', (req, res) => {
-        console.log(req.files)
+        const nameFile = new Date().getTime()+".sql";
         var file;
         if (!req.files) {
             res.send("File was not found");
             return;
         }
         file = req.files.sampleFile;  // here is the field name of the form
-        file.mv(path.join(__dirname, '../public/script','myScript.sql'))
-        
-        res.send("File Uploaded");
+        file.mv(path.join(__dirname, '../public/script',nameFile))
+        .then(() =>{
+            if( execSQL(nameFile)){
+                res.send("Excute success");
+            }else{
+                res.send("Excute failed");
+            }
+        })
+        .catch(err=>{
+            res.send("Upload failed");
+        })
     })
 }
 module.exports = Route;
